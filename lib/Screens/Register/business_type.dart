@@ -65,6 +65,12 @@ class _ProofFormState extends State<ProofForm> {
   final proofFormKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    getValues();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Form(
@@ -75,6 +81,7 @@ class _ProofFormState extends State<ProofForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
                 child: DropdownButtonFormField(
+              value: type == "" ? null : type,
               onSaved: (value) {
                 setBusinessType(value!);
               },
@@ -89,13 +96,13 @@ class _ProofFormState extends State<ProofForm> {
                 "Sole Proprietorship",
                 "Partnership",
                 "Limited Liability Partnership (LLP)"
-              ].map((String category) {
+              ].map((String type) {
                 return DropdownMenuItem(
-                    value: category,
+                    value: type,
                     child: Row(
                       children: <Widget>[
                         Text(
-                          category,
+                          type,
                           style: const TextStyle(fontSize: 15),
                         ),
                       ],
@@ -116,6 +123,7 @@ class _ProofFormState extends State<ProofForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
                 child: DropdownButtonFormField(
+              value: category == "" ? null : category,
               onSaved: (value) {
                 setBusinessCategory(value!);
               },
@@ -176,5 +184,15 @@ class _ProofFormState extends State<ProofForm> {
         ],
       ),
     );
+  }
+
+  getValues() async {
+    String? busType = await getBusinessType();
+    String? busCat = await getBusinessCategory();
+
+    setState(() {
+      type = busType!;
+      category = busCat!;
+    });
   }
 }

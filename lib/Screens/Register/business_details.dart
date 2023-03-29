@@ -64,6 +64,19 @@ class BusinessDetailForm extends StatefulWidget {
 class _BusinessDetailFormState extends State<BusinessDetailForm> {
   final detailsFormKey = GlobalKey<FormState>();
 
+  String busName = "";
+
+  final busNameController = TextEditingController();
+  final busPhoneController = TextEditingController();
+  final busEmailController = TextEditingController();
+  final busPassController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    getValues();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -78,6 +91,7 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
                 keyboardType: TextInputType.name,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
+                controller: busNameController,
                 onSaved: (value) {
                   setBusinessName(value!);
                 },
@@ -105,6 +119,7 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.next,
+                controller: busEmailController,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {
                   setBusinessEmail(value!);
@@ -133,6 +148,7 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.telephoneNumber],
+                controller: busPhoneController,
                 cursorColor: kPrimaryColor,
                 maxLength: 10,
                 onSaved: (value) {
@@ -164,6 +180,7 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
                 autofillHints: const [AutofillHints.password],
                 textInputAction: TextInputAction.done,
                 obscureText: true,
+                controller: busPassController,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {
                   setBusinessPass(value!);
@@ -228,5 +245,19 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
         ],
       ),
     );
+  }
+
+  getValues() async {
+    String? busName = await getBusinessName();
+    busNameController.text = busName!;
+
+    String? busEmail = await getBusinessEmail();
+    busEmailController.text = busEmail!;
+
+    String? busPhone = await getBusinessPhone();
+    busPhoneController.text = busPhone!;
+
+    String? busPass = await getBusinessPass();
+    busPassController.text = busPass!;
   }
 }

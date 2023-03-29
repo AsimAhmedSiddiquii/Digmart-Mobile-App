@@ -33,7 +33,7 @@ class MobileLoginScreen extends StatelessWidget {
           children: [
             const Text(
               "Welcome Back, Login!",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+              style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: defaultPadding * 2),
             Row(
@@ -146,8 +146,8 @@ class LoginForm extends StatelessWidget {
               ),
             ),
             child: const Text(
-              "Don’t have an Account? Register",
-              style: TextStyle(color: kPrimaryColor),
+              "Don’t have an Account? Register!",
+              style: TextStyle(color: kPrimaryColor, fontSize: 16),
             ),
           ),
         ],

@@ -65,7 +65,8 @@ class ProofForm extends StatefulWidget {
 
 class _ProofFormState extends State<ProofForm> {
   String gstNo = "";
-  late PlatformFile gstFile, busLogoFile;
+  bool uploadedLogo = false, uploadedGST = false;
+  PlatformFile? gstFile, busLogoFile;
   final formGlobalKey = GlobalKey<FormState>();
 
   @override
@@ -79,29 +80,54 @@ class _ProofFormState extends State<ProofForm> {
             width: size.width * 0.8,
             height: 60,
             child: ElevatedButton.icon(
-              icon: const Icon(
-                Icons.upload_file,
-                color: kPrimaryColor,
-              ),
-              style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      side: BorderSide(color: kPrimaryColor)),
-                  backgroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 40)),
+              icon: uploadedLogo
+                  ? const Icon(
+                      Icons.check_box,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      color: kPrimaryColor,
+                    ),
+              style: uploadedLogo
+                  ? ElevatedButton.styleFrom(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12))),
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40))
+                  : ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          side: BorderSide(color: kPrimaryColor)),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40)),
               onPressed: () async {
                 final result = await FilePicker.platform.pickFiles(
-                    type: FileType.image,
+                    type: FileType.custom,
                     allowedExtensions: ['png', 'jpg', 'jpeg']);
-                if (result == null) return;
-                busLogoFile = result.files.first;
+                if (result == null) {
+                  setState(() {
+                    uploadedLogo = false;
+                  });
+                } else {
+                  busLogoFile = result.files.first;
+                  setState(() {
+                    uploadedLogo = true;
+                  });
+                }
               },
-              label: const Text(
-                'Upload Business Logo',
-                style: TextStyle(color: kPrimaryColor),
-              ),
+              label: uploadedLogo
+                  ? Text(
+                      busLogoFile == null ? "" : busLogoFile!.name,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : const Text(
+                      'Upload Business Logo',
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
             ),
           ),
           const SizedBox(height: defaultPadding * 1.25),
@@ -139,28 +165,54 @@ class _ProofFormState extends State<ProofForm> {
             width: size.width * 0.8,
             height: 60,
             child: ElevatedButton.icon(
-              icon: const Icon(
-                Icons.upload_file,
-                color: kPrimaryColor,
-              ),
-              style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      side: BorderSide(color: kPrimaryColor)),
-                  backgroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 40)),
+              icon: uploadedGST
+                  ? const Icon(
+                      Icons.check_box,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      color: kPrimaryColor,
+                    ),
+              style: uploadedGST
+                  ? ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12))),
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40))
+                  : ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          side: BorderSide(color: kPrimaryColor)),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40)),
               onPressed: () async {
                 final result = await FilePicker.platform.pickFiles(
-                    type: FileType.custom, allowedExtensions: ['pdf']);
-                if (result == null) return;
-                gstFile = result.files.first;
+                    type: FileType.custom, allowedExtensions: ['pdf', 'png']);
+                if (result == null) {
+                  setState(() {
+                    uploadedGST = false;
+                  });
+                } else {
+                  setState(() {
+                    uploadedGST = true;
+                  });
+                  gstFile = result.files.first;
+                }
               },
-              label: const Text(
-                'Upload GST Certificate',
-                style: TextStyle(color: kPrimaryColor),
-              ),
+              label: uploadedGST
+                  ? Text(
+                      gstFile!.name,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : const Text(
+                      'Upload GST Certificate',
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
             ),
           ),
           const SizedBox(height: defaultPadding * 2),

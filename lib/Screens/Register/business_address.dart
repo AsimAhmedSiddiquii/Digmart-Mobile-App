@@ -61,9 +61,18 @@ class AddressForm extends StatefulWidget {
 }
 
 class _AddressFormState extends State<AddressForm> {
-  String city = "Mumbai";
-  String state = "Maharashtra";
+  String city = "";
+  String state = "";
   final addressFormKey = GlobalKey<FormState>();
+
+  final busStreetController = TextEditingController();
+  final busPincodeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    getValues();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +89,7 @@ class _AddressFormState extends State<AddressForm> {
                 autofillHints: const [AutofillHints.streetAddressLevel1],
                 textInputAction: TextInputAction.done,
                 cursorColor: kPrimaryColor,
+                controller: busStreetController,
                 onSaved: (value) {
                   setBusinessAddress(value!);
                 },
@@ -104,6 +114,7 @@ class _AddressFormState extends State<AddressForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
                 child: DropdownButtonFormField(
+              value: city == "" ? null : city,
               onSaved: (value) {
                 setBusinessCity(value!);
               },
@@ -145,6 +156,7 @@ class _AddressFormState extends State<AddressForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
                 child: DropdownButtonFormField(
+              value: state == "" ? null : state,
               onSaved: (value) {
                 setBusinessState(value!);
               },
@@ -190,6 +202,7 @@ class _AddressFormState extends State<AddressForm> {
                 autofillHints: const [AutofillHints.postalCode],
                 textInputAction: TextInputAction.done,
                 cursorColor: kPrimaryColor,
+                controller: busPincodeController,
                 maxLength: 6,
                 onSaved: (value) {
                   setBusinessPin(value!);
@@ -239,5 +252,21 @@ class _AddressFormState extends State<AddressForm> {
         ],
       ),
     );
+  }
+
+  getValues() async {
+    String? busAddress = await getBusinessAddress();
+    busStreetController.text = busAddress!;
+
+    String? busPin = await getBusinessPin();
+    busPincodeController.text = busPin!;
+
+    String? busCity = await getBusinessCity();
+    String? busState = await getBusinessState();
+
+    setState(() {
+      city = busCity!;
+      state = busState!;
+    });
   }
 }
