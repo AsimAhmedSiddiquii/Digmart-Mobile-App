@@ -1,9 +1,16 @@
+import 'dart:convert';
+
+import 'package:digmart_business/Screens/Register/business_address.dart';
+import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/snackbar.dart';
 import 'package:digmart_business/components/validation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../constants.dart';
+import '../Register/business_auth.dart';
 import '../Register/business_details.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -63,15 +70,23 @@ class MobileLoginScreen extends StatelessWidget {
   }
 }
 
-class LoginForm extends StatelessWidget {
-  const LoginForm({
-    Key? key,
-  }) : super(key: key);
+class LoginForm extends StatefulWidget {
+  const LoginForm({super.key});
+
+  @override
+  State<LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
+  final busEmailController = TextEditingController();
+  final busPassController = TextEditingController();
+  final loginFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Form(
+      key: loginFormKey,
       child: Column(
         children: [
           TextFieldContainer(
@@ -80,6 +95,7 @@ class LoginForm extends StatelessWidget {
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.email],
               cursorColor: kPrimaryColor,
+              controller: busEmailController,
               validator: (email) {
                 if (isValidEmail(email!)) {
                   return null;
@@ -103,6 +119,7 @@ class LoginForm extends StatelessWidget {
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.password],
                 obscureText: true,
+                controller: busPassController,
                 cursorColor: kPrimaryColor,
                 validator: (password) {
                   if (isValidPassword(password!)) {
@@ -125,7 +142,12 @@ class LoginForm extends StatelessWidget {
           SizedBox(
             width: size.width * 0.8,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (loginFormKey.currentState!.validate()) {
+                  loginFormKey.currentState!.save();
+                  loginSeller();
+                }
+              },
               style: ElevatedButton.styleFrom(
                   backgroundColor: kPrimaryColor,
                   padding:
@@ -146,12 +168,47 @@ class LoginForm extends StatelessWidget {
               ),
             ),
             child: const Text(
-              "Don’t have an Account? Register!",
+              "Don’t have an account? Register!",
               style: TextStyle(color: kPrimaryColor, fontSize: 16),
             ),
           ),
         ],
       ),
     );
+  }
+
+  loginSeller() async {
+    final url = Uri.parse('$urlPrefix/seller/login-seller');
+    var json = {
+      "busEmail": busEmailController.text,
+      "busPass": busPassController.text
+    };
+    setBusinessEmail(busEmailController.text);
+    final response = await post(url, body: json);
+    var result = jsonDecode(response.body);
+    if (result["status"] == "New") {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(displayRegisterSnackbar(
+            "Complete the registration process first!", context));
+      }
+    } else if (result["status"] == "Authenticated") {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return const BusinessAddressScreen();
+          },
+        ));
+      }
+    } else if (result["status"] == "Not Found") {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displayRegisterSnackbar("No seller with Email Found", context));
+      }
+    } else if (result["status"] == "Incorrect") {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(displayErrorSnackbar("Incorrect Email or Password"));
+      }
+    }
   }
 }

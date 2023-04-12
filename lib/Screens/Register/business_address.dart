@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:digmart_business/Screens/Register/business_type.dart';
 import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
@@ -232,11 +236,7 @@ class _AddressFormState extends State<AddressForm> {
               onPressed: () async {
                 if (addressFormKey.currentState!.validate()) {
                   addressFormKey.currentState!.save();
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) {
-                      return const BusinessTypeScreen();
-                    },
-                  ));
+                  saveAddressDetails();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -256,17 +256,45 @@ class _AddressFormState extends State<AddressForm> {
 
   getValues() async {
     String? busAddress = await getBusinessAddress();
-    busStreetController.text = busAddress!;
+    busStreetController.text = busAddress ?? "";
 
     String? busPin = await getBusinessPin();
-    busPincodeController.text = busPin!;
+    busPincodeController.text = busPin ?? "";
 
     String? busCity = await getBusinessCity();
     String? busState = await getBusinessState();
 
     setState(() {
-      city = busCity!;
-      state = busState!;
+      city = busCity ?? "";
+      state = busState ?? "";
     });
+  }
+
+  saveAddressDetails() async {
+    final url = Uri.parse('$urlPrefix/seller/register-address-details');
+    var json = {
+      "busEmail": await getBusinessEmail(),
+      "busAddress": busStreetController.text,
+      "busCity": city,
+      "busState": state,
+      "busPin": busPincodeController.text,
+    };
+
+    final response = await post(url, body: json);
+    var result = jsonDecode(response.body);
+    if (result["status"]) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return const BusinessTypeScreen();
+          },
+        ));
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displayErrorSnackbar("Something Went Wrong, Contact Support!"));
+      }
+    }
   }
 }

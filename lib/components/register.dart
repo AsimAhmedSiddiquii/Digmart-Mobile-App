@@ -100,6 +100,46 @@ void setBusinessCategory(String busCat) async {
   prefs.setString('busCat', busCat);
 }
 
+Future<String?> getBankName() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('bankName');
+}
+
+void setBankName(String bankName) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('bankName', bankName);
+}
+
+Future<String?> getBankAccountName() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('accountName');
+}
+
+void setBankAccountName(String accountName) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('accountName', accountName);
+}
+
+Future<String?> getBankIFSC() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('bankIFSC');
+}
+
+void setBankIFSC(String bankIFSC) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('bankIFSC', bankIFSC);
+}
+
+Future<String?> getAccountNo() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('bankAccNo');
+}
+
+void setAccountNo(String bankAccNo) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('bankAccNo', bankAccNo);
+}
+
 void clearRegisterStorage() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.clear();

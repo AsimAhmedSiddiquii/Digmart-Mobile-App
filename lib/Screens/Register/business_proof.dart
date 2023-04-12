@@ -1,6 +1,9 @@
+import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
@@ -33,12 +36,9 @@ class BusProofScreen extends StatelessWidget {
           children: const [
             Text(
               "Business Proof",
-              style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22),
+              style: TextStyle(fontFamily: 'Roboto', fontSize: 22),
             ),
-            SizedBox(height: defaultPadding * 1.75),
+            SizedBox(height: defaultPadding * 1.25),
           ],
         ),
         Row(
@@ -65,9 +65,29 @@ class ProofForm extends StatefulWidget {
 
 class _ProofFormState extends State<ProofForm> {
   String gstNo = "";
-  bool uploadedLogo = false, uploadedGST = false;
-  PlatformFile? gstFile, busLogoFile;
+  String fssaiNo = "";
+  bool isFood = false;
+  bool uploadedLogo = false,
+      uploadedGST = false,
+      uploadedFSSAI = false,
+      uploadedBank = false;
+  PlatformFile? gstFile, busLogoFile, fssaiFile, bankFile;
   final formGlobalKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    getBusCat();
+  }
+
+  getBusCat() async {
+    String? busCat = await getBusinessCategory();
+    if (busCat == "Food") {
+      setState(() {
+        isFood = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +146,61 @@ class _ProofFormState extends State<ProofForm> {
                     )
                   : const Text(
                       'Upload Business Logo',
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
+            ),
+          ),
+          const SizedBox(height: defaultPadding * 1.25),
+          SizedBox(
+            width: size.width * 0.8,
+            height: 60,
+            child: ElevatedButton.icon(
+              icon: uploadedBank
+                  ? const Icon(
+                      Icons.check_box,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      color: kPrimaryColor,
+                    ),
+              style: uploadedBank
+                  ? ElevatedButton.styleFrom(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12))),
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40))
+                  : ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          side: BorderSide(color: kPrimaryColor)),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40)),
+              onPressed: () async {
+                final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['png', 'jpg', 'jpeg']);
+                if (result == null) {
+                  setState(() {
+                    uploadedBank = false;
+                  });
+                } else {
+                  bankFile = result.files.first;
+                  setState(() {
+                    uploadedBank = true;
+                  });
+                }
+              },
+              label: uploadedBank
+                  ? Text(
+                      bankFile == null ? "" : bankFile!.name,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : const Text(
+                      'Upload Bank Proof',
                       style: TextStyle(color: kPrimaryColor),
                     ),
             ),
@@ -215,6 +290,99 @@ class _ProofFormState extends State<ProofForm> {
                     ),
             ),
           ),
+          isFood
+              ? const SizedBox(height: defaultPadding * 1.25)
+              : const SizedBox(height: 0),
+          isFood
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: defaultPadding * 1.25),
+                  child: TextFieldContainer(
+                    child: TextFormField(
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.done,
+                      cursorColor: kPrimaryColor,
+                      maxLength: 14,
+                      onSaved: (value) {
+                        fssaiNo = value!;
+                      },
+                      validator: (fssai) {
+                        if (isValidFSSAI(fssai!)) {
+                          return null;
+                        } else {
+                          return 'Enter a valid FSSAI Registration';
+                        }
+                      },
+                      decoration: const InputDecoration(
+                          hintText: "FSSAI Number",
+                          counterText: "",
+                          icon: Icon(
+                            Icons.numbers,
+                            color: kPrimaryColor,
+                          ),
+                          border: InputBorder.none),
+                    ),
+                  ),
+                )
+              : Container(),
+          isFood
+              ? SizedBox(
+                  width: size.width * 0.8,
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    icon: uploadedFSSAI
+                        ? const Icon(
+                            Icons.check_box,
+                            color: Colors.white,
+                          )
+                        : const Icon(
+                            Icons.upload_file,
+                            color: kPrimaryColor,
+                          ),
+                    style: uploadedFSSAI
+                        ? ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12))),
+                            backgroundColor: kPrimaryColor,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 40))
+                        : ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                                side: BorderSide(color: kPrimaryColor)),
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 40)),
+                    onPressed: () async {
+                      final result = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['pdf', 'png']);
+                      if (result == null) {
+                        setState(() {
+                          uploadedFSSAI = false;
+                        });
+                      } else {
+                        setState(() {
+                          uploadedFSSAI = true;
+                        });
+                        fssaiFile = result.files.first;
+                      }
+                    },
+                    label: uploadedFSSAI
+                        ? Text(
+                            fssaiFile!.name,
+                            style: const TextStyle(color: Colors.white),
+                          )
+                        : const Text(
+                            'Upload FSSAI Certificate',
+                            style: TextStyle(color: kPrimaryColor),
+                          ),
+                  ),
+                )
+              : const SizedBox(height: 0),
           const SizedBox(height: defaultPadding * 2),
           SizedBox(
             width: size.width * 0.8,
@@ -223,7 +391,18 @@ class _ProofFormState extends State<ProofForm> {
               onPressed: () {
                 if (formGlobalKey.currentState!.validate()) {
                   formGlobalKey.currentState!.save();
-                  print("Done");
+                  if (busLogoFile == null) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(displaySnackbar("Upload Business Logo"));
+                  } else if (gstFile == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        displaySnackbar("Upload GST Certificate !"));
+                  } else if (isFood && fssaiFile == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        displaySnackbar("Upload FSSAI Certificate"));
+                  } else {
+                    registerBusiness();
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -239,6 +418,36 @@ class _ProofFormState extends State<ProofForm> {
         ],
       ),
     );
+  }
+
+  Future<bool> registerBusiness() async {
+    var request = http.MultipartRequest(
+        'POST', Uri.parse('$urlPrefix/seller/register-seller'));
+    request.files.add(await http.MultipartFile.fromPath(
+        'busGstFile', gstFile?.path as String));
+
+    request.fields["busName"] = (await getBusinessName())!;
+    request.fields["busEmail"] = (await getBusinessEmail())!;
+    request.fields["busPhone"] = (await getBusinessPhone())!;
+    request.fields["busPass"] = (await getBusinessPass())!;
+    request.fields["busAddress"] = (await getBusinessAddress())!;
+    request.fields["busCity"] = (await getBusinessCity())!;
+    request.fields["busState"] = (await getBusinessState())!;
+    request.fields["busPin"] = (await getBusinessPin())!;
+    request.fields["busType"] = (await getBusinessType())!;
+    request.fields["busCat"] = (await getBusinessCategory())!;
+    request.fields["bankName"] = (await getBankName())!;
+    request.fields["bankAccNo"] = (await getAccountNo())!;
+    request.fields["bankIfsc"] = (await getBankIFSC())!;
+    request.fields["busGstNo"] = gstNo;
+    request.fields["busFssaiNo"] = fssaiNo;
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 

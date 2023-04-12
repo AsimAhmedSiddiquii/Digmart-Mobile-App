@@ -1,19 +1,14 @@
-import 'package:digmart_business/Screens/Login/login_screen.dart';
-import 'package:digmart_business/Screens/Register/business_address.dart';
-import 'package:digmart_business/Screens/Register/business_auth.dart';
+import 'package:digmart_business/Screens/Register/business_proof.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart';
 
-import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
 import '../../components/register.dart';
 import '../../constants.dart';
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+class BusinessBankDetails extends StatelessWidget {
+  const BusinessBankDetails({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +32,7 @@ class MobileRegisterScreen extends StatelessWidget {
         Column(
           children: const [
             Text(
-              "Business Information",
+              "Bank Details",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
             ),
             SizedBox(height: defaultPadding * 1.75),
@@ -48,7 +43,7 @@ class MobileRegisterScreen extends StatelessWidget {
             Spacer(),
             Expanded(
               flex: 8,
-              child: BusinessDetailForm(),
+              child: BusinessBankDetailForm(),
             ),
             Spacer(),
           ],
@@ -58,22 +53,20 @@ class MobileRegisterScreen extends StatelessWidget {
   }
 }
 
-class BusinessDetailForm extends StatefulWidget {
-  const BusinessDetailForm({super.key});
+class BusinessBankDetailForm extends StatefulWidget {
+  const BusinessBankDetailForm({super.key});
 
   @override
-  State<BusinessDetailForm> createState() => _BusinessDetailFormState();
+  State<BusinessBankDetailForm> createState() => _BusinessDetailFormState();
 }
 
-class _BusinessDetailFormState extends State<BusinessDetailForm> {
+class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
   final detailsFormKey = GlobalKey<FormState>();
 
-  String busName = "";
-
-  final busNameController = TextEditingController();
-  final busPhoneController = TextEditingController();
-  final busEmailController = TextEditingController();
-  final busPassController = TextEditingController();
+  final bankNameController = TextEditingController();
+  final accountNameController = TextEditingController();
+  final bankAccountController = TextEditingController();
+  final bankIFSCController = TextEditingController();
 
   @override
   void initState() {
@@ -92,22 +85,21 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
               child: TextFormField(
-                keyboardType: TextInputType.name,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
-                controller: busNameController,
+                controller: bankNameController,
                 onSaved: (value) {
-                  setBusinessName(value!);
+                  setBankName(value!);
                 },
                 validator: (name) {
-                  if (isValidName(name!)) {
+                  if (isValidBankName(name!)) {
                     return null;
                   } else {
-                    return 'Enter a valid Business Name';
+                    return 'Enter a valid Bank Name';
                   }
                 },
                 decoration: const InputDecoration(
-                    hintText: "Business Name",
+                    hintText: "Bank Name",
                     icon: Icon(
                       Icons.business,
                       color: kPrimaryColor,
@@ -120,25 +112,24 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
               child: TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
+                keyboardType: TextInputType.name,
                 textInputAction: TextInputAction.next,
-                controller: busEmailController,
+                controller: accountNameController,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {
-                  setBusinessEmail(value!);
+                  setBankAccountName(value!);
                 },
-                validator: (email) {
-                  if (isValidEmail(email!)) {
+                validator: (account) {
+                  if (isValidBankName(account!)) {
                     return null;
                   } else {
-                    return 'Enter a valid Email Address';
+                    return 'Enter a valid Bank Account Name';
                   }
                 },
                 decoration: const InputDecoration(
-                    hintText: "Business Email Address",
+                    hintText: "Bank Account Name",
                     icon: Icon(
-                      Icons.email,
+                      Icons.business_center,
                       color: kPrimaryColor,
                     ),
                     border: InputBorder.none),
@@ -149,26 +140,25 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
               child: TextFormField(
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.telephoneNumber],
-                controller: busPhoneController,
+                controller: bankAccountController,
                 cursorColor: kPrimaryColor,
                 maxLength: 10,
                 onSaved: (value) {
-                  setBusinessPhone(value!);
+                  setAccountNo(value!);
                 },
-                validator: (phone) {
-                  if (isValidPhone(phone!)) {
+                validator: (accNo) {
+                  if (isValidAccountNo(accNo!)) {
                     return null;
                   } else {
-                    return 'Enter a valid Phone Number';
+                    return 'Enter a valid Bank Account No';
                   }
                 },
                 decoration: const InputDecoration(
-                    hintText: "Business Phone",
+                    hintText: "Bank Account Number",
                     icon: Icon(
-                      Icons.phone,
+                      Icons.pin,
                       color: kPrimaryColor,
                     ),
                     counterText: "",
@@ -180,26 +170,24 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
             padding: const EdgeInsets.only(bottom: defaultPadding),
             child: TextFieldContainer(
               child: TextFormField(
-                keyboardType: TextInputType.visiblePassword,
-                autofillHints: const [AutofillHints.password],
+                keyboardType: TextInputType.name,
                 textInputAction: TextInputAction.done,
-                obscureText: true,
-                controller: busPassController,
+                controller: bankIFSCController,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {
-                  setBusinessPass(value!);
+                  setBankIFSC(value!);
                 },
-                validator: (password) {
-                  if (isValidPassword(password!)) {
+                validator: (ifsc) {
+                  if (isValidIFSC(ifsc!)) {
                     return null;
                   } else {
-                    return 'Min 8 chars, 1 letter, 1 number, 1 special';
+                    return 'Enter valid Bank IFSC';
                   }
                 },
                 decoration: const InputDecoration(
-                    hintText: "Your password",
+                    hintText: "Bank IFSC",
                     icon: Icon(
-                      Icons.lock,
+                      Icons.closed_caption,
                       color: kPrimaryColor,
                     ),
                     border: InputBorder.none),
@@ -213,7 +201,11 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
               onPressed: () async {
                 if (detailsFormKey.currentState!.validate()) {
                   detailsFormKey.currentState!.save();
-                  checkExistence();
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) {
+                      return const BusinessProofScreen();
+                    },
+                  ));
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -226,69 +218,22 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
             ),
           ),
           const SizedBox(height: defaultPadding),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const LoginScreen();
-                  },
-                ),
-              );
-            },
-            child: const Text(
-              "Already have an account? Login",
-              style: TextStyle(color: kPrimaryColor),
-            ),
-          ),
         ],
       ),
     );
   }
 
   getValues() async {
-    String? busName = await getBusinessName();
-    busNameController.text = busName ?? "";
+    String? bankName = await getBankName();
+    bankNameController.text = bankName ?? "";
 
-    String? busEmail = await getBusinessEmail();
-    busEmailController.text = busEmail ?? "";
+    String? accountName = await getBankAccountName();
+    accountNameController.text = accountName ?? "";
 
-    String? busPhone = await getBusinessPhone();
-    busPhoneController.text = busPhone ?? "";
+    String? bankIFSC = await getBankIFSC();
+    bankIFSCController.text = bankIFSC ?? "";
 
-    String? busPass = await getBusinessPass();
-    busPassController.text = busPass ?? "";
-  }
-
-  checkExistence() async {
-    final url = Uri.parse('$urlPrefix/seller/new-seller');
-    var json = {
-      "busName": busNameController.text,
-      "busEmail": busEmailController.text,
-      "busPhone": busPhoneController.text,
-      "busPass": busPassController.text
-    };
-    final response = await post(url, body: json);
-    var result = jsonDecode(response.body);
-    if (result["status"] == "New") {
-      if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return BusinessVerificationScreen(
-                busEmail: busEmailController.text,
-                busPhone: busPhoneController.text);
-          },
-        ));
-      }
-    } else {
-      if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return const BusinessAddressScreen();
-          },
-        ));
-      }
-    }
+    String? bankAccNo = await getAccountNo();
+    bankAccountController.text = bankAccNo ?? "";
   }
 }

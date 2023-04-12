@@ -1,7 +1,12 @@
-import 'package:digmart_business/Screens/Register/business_proof.dart';
-import 'package:digmart_business/components/Register.dart';
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:digmart_business/Screens/Register/business_bank_details.dart';
+import 'package:digmart_business/components/Register.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+
+import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../constants.dart';
@@ -60,9 +65,11 @@ class ProofForm extends StatefulWidget {
 }
 
 class _ProofFormState extends State<ProofForm> {
-  String type = "";
+  String type = "", busTypeStr = "";
   String category = "";
-  final proofFormKey = GlobalKey<FormState>();
+  bool selected = false, uploaded = false;
+  PlatformFile? file;
+  final typeFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -74,7 +81,7 @@ class _ProofFormState extends State<ProofForm> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Form(
-      key: proofFormKey,
+      key: typeFormKey,
       child: Column(
         children: [
           Padding(
@@ -95,7 +102,8 @@ class _ProofFormState extends State<ProofForm> {
               items: [
                 "Sole Proprietorship",
                 "Partnership",
-                "Limited Liability Partnership (LLP)"
+                "Limited Liability Partnership (LLP)",
+                "Private Limited Company"
               ].map((String type) {
                 return DropdownMenuItem(
                     value: type,
@@ -109,7 +117,22 @@ class _ProofFormState extends State<ProofForm> {
                     ));
               }).toList(),
               onChanged: (newValue) {
-                setState(() => type = newValue!);
+                setState(() {
+                  type = newValue!;
+                  selected = true;
+                  if (type == "Sole Proprietorship") {
+                    busTypeStr = "Proprietor's PAN Card";
+                  }
+                  if (type == "Partnership") {
+                    busTypeStr = "Partnership Deed";
+                  }
+                  if (type == "Limited Liability Partnership (LLP)") {
+                    busTypeStr = "LLP Formation Document";
+                  }
+                  if (type == "Private Limited Company") {
+                    busTypeStr = "Company's PAN Card";
+                  }
+                });
               },
               decoration: const InputDecoration(
                   contentPadding: EdgeInsets.fromLTRB(10, 20, 10, 20),
@@ -157,18 +180,78 @@ class _ProofFormState extends State<ProofForm> {
                   border: InputBorder.none),
             )),
           ),
+          SizedBox(
+            width: size.width * 0.8,
+            height: 60,
+            child: ElevatedButton.icon(
+              icon: uploaded
+                  ? const Icon(
+                      Icons.check_box,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      color: kPrimaryColor,
+                    ),
+              style: uploaded
+                  ? ElevatedButton.styleFrom(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12))),
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40))
+                  : ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          side: BorderSide(color: kPrimaryColor)),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40)),
+              onPressed: () async {
+                final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['png', 'jpg', 'jpeg', 'pdf']);
+                if (result == null) {
+                  setState(() {
+                    uploaded = false;
+                  });
+                } else {
+                  file = result.files.first;
+                  setState(() {
+                    uploaded = true;
+                  });
+                }
+              },
+              label: uploaded
+                  ? Text(
+                      file == null ? "" : file!.name,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : Text(
+                      'Upload $busTypeStr',
+                      style: const TextStyle(color: kPrimaryColor),
+                    ),
+            ),
+          ),
           const SizedBox(height: defaultPadding),
           SizedBox(
             width: size.width * 0.8,
             child: ElevatedButton(
               onPressed: () {
-                if (proofFormKey.currentState!.validate()) {
-                  proofFormKey.currentState!.save();
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) {
-                      return const BusinessProofScreen();
-                    },
-                  ));
+                if (typeFormKey.currentState!.validate()) {
+                  typeFormKey.currentState!.save();
+                  if (file == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        displaySnackbar("Please, Upload Requested Document"));
+                  } else {
+                    saveTypeDetails();
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) {
+                        return const BusinessBankDetails();
+                      },
+                    ));
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -191,8 +274,35 @@ class _ProofFormState extends State<ProofForm> {
     String? busCat = await getBusinessCategory();
 
     setState(() {
-      type = busType!;
-      category = busCat!;
+      type = busType ?? "";
+      category = busCat ?? "";
     });
+  }
+
+  saveTypeDetails() async {
+    final url = Uri.parse('$urlPrefix/seller/register-type-details');
+    var json = {
+      "busEmail": await getBusinessEmail(),
+      "busType": type,
+      "busCat": category,
+      "busTypeProof": state,
+    };
+
+    final response = await post(url, body: json);
+    var result = jsonDecode(response.body);
+    if (result["status"]) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return const BusinessTypeScreen();
+          },
+        ));
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displayErrorSnackbar("Something Went Wrong, Contact Support!"));
+      }
+    }
   }
 }

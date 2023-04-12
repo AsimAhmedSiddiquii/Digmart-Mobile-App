@@ -34,3 +34,28 @@ bool isValidGST(String gst) {
       RegExp('[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}');
   return regex.hasMatch(gst);
 }
+
+bool isValidFSSAI(String fssai) {
+  RegExp regex = RegExp('[0-9]{14}');
+  return regex.hasMatch(fssai);
+}
+
+bool isValidOTP(String otp) {
+  RegExp regex = RegExp('[0-9]{6}');
+  return regex.hasMatch(otp);
+}
+
+bool isValidIFSC(String ifsc) {
+  RegExp regex = RegExp('[A-Z]{4}0[A-Z0-9]{6}');
+  return regex.hasMatch(ifsc);
+}
+
+bool isValidAccountNo(String phone) {
+  RegExp regex = RegExp('[0-9]');
+  return regex.hasMatch(phone);
+}
+
+bool isValidBankName(String name) {
+  RegExp regex = RegExp('[a-zA-Z ]');
+  return regex.hasMatch(name);
+}
