@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:digmart_business/Screens/Register/business_bank_details.dart';
 import 'package:digmart_business/components/Register.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
@@ -66,8 +68,8 @@ class ProofForm extends StatefulWidget {
 
 class _ProofFormState extends State<ProofForm> {
   String type = "", busTypeStr = "";
-  String category = "";
-  bool selected = false, uploaded = false;
+  String category = "", email = "", busTypeFileURL = "";
+  bool selected = false, uploaded = false, uploading = false;
   PlatformFile? file;
   final typeFormKey = GlobalKey<FormState>();
 
@@ -120,18 +122,7 @@ class _ProofFormState extends State<ProofForm> {
                 setState(() {
                   type = newValue!;
                   selected = true;
-                  if (type == "Sole Proprietorship") {
-                    busTypeStr = "Proprietor's PAN Card";
-                  }
-                  if (type == "Partnership") {
-                    busTypeStr = "Partnership Deed";
-                  }
-                  if (type == "Limited Liability Partnership (LLP)") {
-                    busTypeStr = "LLP Formation Document";
-                  }
-                  if (type == "Private Limited Company") {
-                    busTypeStr = "Company's PAN Card";
-                  }
+                  busTypeStr = getUploadButtonString(type);
                 });
               },
               decoration: const InputDecoration(
@@ -209,17 +200,30 @@ class _ProofFormState extends State<ProofForm> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 15, horizontal: 40)),
               onPressed: () async {
+                setState(() {
+                  uploading = true;
+                });
+                final firebaseStorage = FirebaseStorage.instance;
+                final UploadTask? uploadTask;
                 final result = await FilePicker.platform.pickFiles(
                     type: FileType.custom,
                     allowedExtensions: ['png', 'jpg', 'jpeg', 'pdf']);
                 if (result == null) {
                   setState(() {
                     uploaded = false;
+                    uploading = false;
                   });
                 } else {
                   file = result.files.first;
+                  final filePath = File(file!.path!);
+                  var ref =
+                      firebaseStorage.ref().child('seller/$email-busTypeProof');
+                  uploadTask = ref.putFile(filePath);
+                  final snapshot = await uploadTask.whenComplete(() {});
+                  busTypeFileURL = await snapshot.ref.getDownloadURL();
                   setState(() {
                     uploaded = true;
+                    uploading = false;
                   });
                 }
               },
@@ -235,34 +239,34 @@ class _ProofFormState extends State<ProofForm> {
             ),
           ),
           const SizedBox(height: defaultPadding),
-          SizedBox(
-            width: size.width * 0.8,
-            child: ElevatedButton(
-              onPressed: () {
-                if (typeFormKey.currentState!.validate()) {
-                  typeFormKey.currentState!.save();
-                  if (file == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        displaySnackbar("Please, Upload Requested Document"));
-                  } else {
-                    saveTypeDetails();
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) {
-                        return const BusinessBankDetails();
-                      },
-                    ));
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 40)),
-              child: Text(
-                "Next".toUpperCase(),
-              ),
-            ),
-          ),
+          uploading
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                )
+              : SizedBox(
+                  width: size.width * 0.8,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (typeFormKey.currentState!.validate()) {
+                        typeFormKey.currentState!.save();
+                        if (file == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              displaySnackbar(
+                                  "Please, Upload Requested Document"));
+                        } else {
+                          saveTypeDetails();
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 40)),
+                    child: Text(
+                      "Proceed".toUpperCase(),
+                    ),
+                  ),
+                ),
           const SizedBox(height: defaultPadding),
         ],
       ),
@@ -272,10 +276,12 @@ class _ProofFormState extends State<ProofForm> {
   getValues() async {
     String? busType = await getBusinessType();
     String? busCat = await getBusinessCategory();
-
+    String? busEmail = await getBusinessEmail();
     setState(() {
       type = busType ?? "";
       category = busCat ?? "";
+      email = busEmail ?? "";
+      busTypeStr = getUploadButtonString(busType ?? "");
     });
   }
 
@@ -285,7 +291,7 @@ class _ProofFormState extends State<ProofForm> {
       "busEmail": await getBusinessEmail(),
       "busType": type,
       "busCat": category,
-      "busTypeProof": state,
+      "busTypeProof": busTypeFileURL,
     };
 
     final response = await post(url, body: json);
@@ -294,7 +300,7 @@ class _ProofFormState extends State<ProofForm> {
       if (context.mounted) {
         Navigator.push(context, MaterialPageRoute(
           builder: (context) {
-            return const BusinessTypeScreen();
+            return const BusinessBankDetails();
           },
         ));
       }
@@ -303,6 +309,21 @@ class _ProofFormState extends State<ProofForm> {
         ScaffoldMessenger.of(context).showSnackBar(
             displayErrorSnackbar("Something Went Wrong, Contact Support!"));
       }
+    }
+  }
+
+  getUploadButtonString(type) {
+    if (type == "Sole Proprietorship") {
+      return "Proprietor's PAN Card";
+    }
+    if (type == "Partnership") {
+      return "Partnership Deed";
+    }
+    if (type == "Limited Liability Partnership (LLP)") {
+      return "LLP Formation Document";
+    }
+    if (type == "Private Limited Company") {
+      return "Company's PAN Card";
     }
   }
 }
