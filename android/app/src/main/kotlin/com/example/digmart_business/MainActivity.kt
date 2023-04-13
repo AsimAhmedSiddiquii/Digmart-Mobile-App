@@ -1,4 +1,4 @@
-package com.example.digmart_business
+package com.entwicklera.digmart_business
 
 import io.flutter.embedding.android.FlutterActivity
 

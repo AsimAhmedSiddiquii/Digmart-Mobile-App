@@ -54,7 +54,7 @@ SnackBar displayLoginSnackbar(text, context) {
   );
 }
 
-SnackBar displayRegisterSnackbar(text, context) {
+SnackBar displayRegisterSnackbar(text, context, page) {
   return SnackBar(
     content: Text(text),
     backgroundColor: (kPrimaryColor),
@@ -67,7 +67,7 @@ SnackBar displayRegisterSnackbar(text, context) {
           context,
           MaterialPageRoute(
             builder: (context) {
-              return const RegisterScreen();
+              return page;
             },
           ),
         );

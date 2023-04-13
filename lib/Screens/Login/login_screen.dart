@@ -10,7 +10,6 @@ import 'package:http/http.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../constants.dart';
-import '../Register/business_auth.dart';
 import '../Register/business_details.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -189,20 +188,21 @@ class _LoginFormState extends State<LoginForm> {
     if (result["status"] == "New") {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(displayRegisterSnackbar(
-            "Complete the registration process first!", context));
+            "Complete your registration process!",
+            context,
+            const RegisterScreen()));
       }
     } else if (result["status"] == "Authenticated") {
       if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return const BusinessAddressScreen();
-          },
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(displayRegisterSnackbar(
+            "Complete your registration process!",
+            context,
+            const BusinessAddressScreen()));
       }
     } else if (result["status"] == "Not Found") {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            displayRegisterSnackbar("No seller with Email Found", context));
+        ScaffoldMessenger.of(context).showSnackBar(displayRegisterSnackbar(
+            "No seller with Email Found", context, const RegisterScreen()));
       }
     } else if (result["status"] == "Incorrect") {
       if (context.mounted) {
