@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:digmart_business/Screens/Login/login_screen.dart';
-import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/dialog.dart';
+import 'package:digmart_business/components/sessionData.dart';
 import 'package:digmart_business/components/snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -13,7 +14,7 @@ import 'package:http/http.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
-import '../../constants.dart';
+import '../../components/constants.dart';
 
 class BusinessProofScreen extends StatelessWidget {
   const BusinessProofScreen({Key? key}) : super(key: key);
@@ -431,7 +432,18 @@ class _ProofFormState extends State<ProofForm> {
     var result = jsonDecode(response.body);
     if (result["status"]) {
       if (context.mounted) {
-        showAlertDialog(context);
+        clearSessionData();
+        showDialog(
+            context: context,
+            builder: (BuildContext context) => const CustomDialog(
+                  title: "Registration Successful",
+                  description:
+                      "Your Business Details have been recorded and sent for verification. Please, check your mail for further communications!",
+                  buttonText: "Done",
+                  icon: Icons.check,
+                  bgColor: kPrimaryColor,
+                  navigateTo: LoginScreen(),
+                ));
       }
     } else {
       if (context.mounted) {
@@ -439,35 +451,6 @@ class _ProofFormState extends State<ProofForm> {
             displayErrorSnackbar("Something Went Wrong, Contact Support!"));
       }
     }
-  }
-
-  showAlertDialog(BuildContext context) {
-    Widget okButton = TextButton(
-      child: const Text("Login"),
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return const LoginScreen();
-          },
-        ));
-      },
-    );
-
-    AlertDialog alert = AlertDialog(
-      title: const Text("Registration Successful"),
-      content: const Text(
-          "Your Business Details are sent for verification. You will receive the verification status via mail."),
-      actions: [
-        okButton,
-      ],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
   }
 }
 

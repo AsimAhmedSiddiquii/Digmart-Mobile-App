@@ -11,8 +11,8 @@ import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
-import '../../components/register.dart';
-import '../../constants.dart';
+import '../../components/sessionData.dart';
+import '../../components/constants.dart';
 
 class BusinessBankDetails extends StatelessWidget {
   const BusinessBankDetails({Key? key}) : super(key: key);

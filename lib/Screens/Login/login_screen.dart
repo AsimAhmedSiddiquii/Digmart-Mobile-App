@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:digmart_business/Screens/Register/business_address.dart';
-import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/sessionData.dart';
 import 'package:digmart_business/components/snackbar.dart';
 import 'package:digmart_business/components/validation.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,8 @@ import 'package:http/http.dart';
 
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
-import '../../constants.dart';
+import '../../components/constants.dart';
+import '../Home/home_screen.dart';
 import '../Register/business_details.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -213,6 +214,17 @@ class _LoginFormState extends State<LoginForm> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             displaySnackbar("Your Business is under verification!"));
+      }
+    } else if (result["status"] == "Verified") {
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return const HomeScreen();
+            },
+          ),
+        );
       }
     }
   }

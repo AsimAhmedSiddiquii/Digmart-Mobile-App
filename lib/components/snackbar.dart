@@ -1,4 +1,4 @@
-import 'package:digmart_business/constants.dart';
+import 'package:digmart_business/components/constants.dart';
 import 'package:flutter/material.dart';
 
 import '../Screens/Login/login_screen.dart';
@@ -8,24 +8,14 @@ SnackBar displaySnackbar(text) {
     content: Text(text),
     backgroundColor: (kPrimaryColor),
     behavior: SnackBarBehavior.floating,
-    action: SnackBarAction(
-      label: 'Okay',
-      textColor: kPrimaryLightColor,
-      onPressed: () {},
-    ),
   );
 }
 
 SnackBar displayErrorSnackbar(text) {
   return SnackBar(
     content: Text(text),
-    backgroundColor: (Colors.red),
+    backgroundColor: (const Color.fromARGB(255, 209, 31, 18)),
     behavior: SnackBarBehavior.floating,
-    action: SnackBarAction(
-      label: 'Okay',
-      textColor: kPrimaryLightColor,
-      onPressed: () {},
-    ),
   );
 }
 

@@ -11,7 +11,7 @@ import 'package:http/http.dart';
 import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
-import '../../constants.dart';
+import '../../components/constants.dart';
 
 class BusinessTypeScreen extends StatelessWidget {
   const BusinessTypeScreen({Key? key}) : super(key: key);

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:digmart_business/Screens/Register/business_type.dart';
-import 'package:digmart_business/components/register.dart';
+import 'package:digmart_business/components/sessionData.dart';
 import 'package:digmart_business/components/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -9,7 +9,7 @@ import 'package:http/http.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
-import '../../constants.dart';
+import '../../components/constants.dart';
 
 class BusinessAddressScreen extends StatelessWidget {
   const BusinessAddressScreen({Key? key}) : super(key: key);

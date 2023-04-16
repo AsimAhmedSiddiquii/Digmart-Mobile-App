@@ -140,7 +140,17 @@ void setAccountNo(String bankAccNo) async {
   prefs.setString('bankAccNo', bankAccNo);
 }
 
-void clearRegisterStorage() async {
+void setloggedIN(bool login) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool('loggedIN', login);
+}
+
+void getLoggedIN() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.clear();
+}
+
+void clearSessionData() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.clear();
 }

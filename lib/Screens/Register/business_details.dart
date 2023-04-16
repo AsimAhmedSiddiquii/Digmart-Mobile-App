@@ -8,8 +8,8 @@ import 'package:http/http.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
-import '../../components/register.dart';
-import '../../constants.dart';
+import '../../components/sessionData.dart';
+import '../../components/constants.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({Key? key}) : super(key: key);

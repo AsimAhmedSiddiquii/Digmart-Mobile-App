@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import '../../components/background.dart';
 import '../../components/snackbar.dart';
-import '../../constants.dart';
+import '../../components/constants.dart';
 
 class BusinessVerificationScreen extends StatefulWidget {
   final String busEmail, busPhone;
