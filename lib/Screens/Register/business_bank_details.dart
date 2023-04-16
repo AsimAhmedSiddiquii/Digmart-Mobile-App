@@ -1,6 +1,13 @@
-import 'package:digmart_business/Screens/Register/business_proof.dart';
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:digmart_business/Screens/Register/business_proof.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+
+import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
 import '../../components/validation.dart';
@@ -67,6 +74,10 @@ class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
   final accountNameController = TextEditingController();
   final bankAccountController = TextEditingController();
   final bankIFSCController = TextEditingController();
+
+  bool selected = false, uploaded = false, uploading = false;
+  PlatformFile? file;
+  String bankFileURL = "", email = "";
 
   @override
   void initState() {
@@ -173,6 +184,7 @@ class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
                 keyboardType: TextInputType.name,
                 textInputAction: TextInputAction.done,
                 controller: bankIFSCController,
+                inputFormatters: [UpperCaseTextFormatter()],
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {
                   setBankIFSC(value!);
@@ -194,29 +206,102 @@ class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
               ),
             ),
           ),
-          const SizedBox(height: defaultPadding),
           SizedBox(
             width: size.width * 0.8,
-            child: ElevatedButton(
+            height: 60,
+            child: ElevatedButton.icon(
+              icon: uploaded
+                  ? const Icon(
+                      Icons.check_box,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      color: kPrimaryColor,
+                    ),
+              style: uploaded
+                  ? ElevatedButton.styleFrom(
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12))),
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40))
+                  : ElevatedButton.styleFrom(
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          side: BorderSide(color: kPrimaryColor)),
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 40)),
               onPressed: () async {
-                if (detailsFormKey.currentState!.validate()) {
-                  detailsFormKey.currentState!.save();
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) {
-                      return const BusinessProofScreen();
-                    },
-                  ));
+                setState(() {
+                  uploading = true;
+                });
+                final firebaseStorage = FirebaseStorage.instance;
+                final UploadTask? uploadTask;
+                final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['png', 'jpg', 'jpeg']);
+                if (result == null) {
+                  setState(() {
+                    uploaded = false;
+                    uploading = false;
+                  });
+                } else {
+                  file = result.files.first;
+                  final filePath = File(file!.path!);
+                  var ref =
+                      firebaseStorage.ref().child('seller/$email-busBankProof');
+                  uploadTask = ref.putFile(filePath);
+                  final snapshot = await uploadTask.whenComplete(() {});
+                  bankFileURL = await snapshot.ref.getDownloadURL();
+                  setState(() {
+                    uploaded = true;
+                    uploading = false;
+                  });
                 }
               },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 40)),
-              child: Text(
-                "Next".toUpperCase(),
-              ),
+              label: uploaded
+                  ? Text(
+                      file == null ? "" : file!.name,
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : const Text(
+                      'Upload Bank Proof',
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
             ),
           ),
+          const SizedBox(height: defaultPadding * 1.75),
+          uploading
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                )
+              : SizedBox(
+                  width: size.width * 0.8,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (detailsFormKey.currentState!.validate()) {
+                        detailsFormKey.currentState!.save();
+                        if (file == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              displaySnackbar(
+                                  "Please, Upload Requested Document"));
+                        } else {
+                          saveBankDetails();
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 40)),
+                    child: Text(
+                      "Proceed".toUpperCase(),
+                    ),
+                  ),
+                ),
           const SizedBox(height: defaultPadding),
         ],
       ),
@@ -235,5 +320,38 @@ class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
 
     String? bankAccNo = await getAccountNo();
     bankAccountController.text = bankAccNo ?? "";
+
+    String? busEmail = await getBusinessEmail();
+    setState(() {
+      email = busEmail ?? "";
+    });
+  }
+
+  saveBankDetails() async {
+    final url = Uri.parse('$urlPrefix/seller/register-bank-details');
+    var json = {
+      "busEmail": await getBusinessEmail(),
+      "bankName": bankNameController.text,
+      "bankAccNo": bankAccountController.text,
+      "bankIfsc": bankIFSCController.text,
+      "bankFile": bankFileURL,
+    };
+
+    final response = await post(url, body: json);
+    var result = jsonDecode(response.body);
+    if (result["status"]) {
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return const BusinessProofScreen();
+          },
+        ));
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displayErrorSnackbar("Something Went Wrong, Contact Support!"));
+      }
+    }
   }
 }

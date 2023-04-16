@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:digmart_business/Screens/Login/login_screen.dart';
 import 'package:digmart_business/components/register.dart';
 import 'package:digmart_business/components/snackbar.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
@@ -36,7 +41,10 @@ class BusProofScreen extends StatelessWidget {
           children: const [
             Text(
               "Business Proof",
-              style: TextStyle(fontFamily: 'Roboto', fontSize: 22),
+              style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500),
             ),
             SizedBox(height: defaultPadding * 1.25),
           ],
@@ -66,13 +74,13 @@ class ProofForm extends StatefulWidget {
 class _ProofFormState extends State<ProofForm> {
   String gstNo = "";
   String fssaiNo = "";
-  bool isFood = false;
-  bool uploadedLogo = false,
-      uploadedGST = false,
-      uploadedFSSAI = false,
-      uploadedBank = false;
-  PlatformFile? gstFile, busLogoFile, fssaiFile, bankFile;
+  String email = "";
+  String gstURL = "", fssaiURL = "", logoURL = "";
+  bool isFood = false, uploading = false;
+  bool uploadedLogo = false, uploadedGST = false, uploadedFSSAI = false;
+  PlatformFile? gstFile, busLogoFile, fssaiFile;
   final formGlobalKey = GlobalKey<FormState>();
+  final firebaseStorage = FirebaseStorage.instance;
 
   @override
   void initState() {
@@ -82,8 +90,10 @@ class _ProofFormState extends State<ProofForm> {
 
   getBusCat() async {
     String? busCat = await getBusinessCategory();
+    String? busEmail = await getBusinessEmail();
     if (busCat == "Food") {
       setState(() {
+        email = busEmail ?? "";
         isFood = true;
       });
     }
@@ -125,17 +135,29 @@ class _ProofFormState extends State<ProofForm> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 15, horizontal: 40)),
               onPressed: () async {
+                setState(() {
+                  uploading = true;
+                });
+                final UploadTask? uploadTask;
                 final result = await FilePicker.platform.pickFiles(
                     type: FileType.custom,
                     allowedExtensions: ['png', 'jpg', 'jpeg']);
                 if (result == null) {
                   setState(() {
                     uploadedLogo = false;
+                    uploading = false;
                   });
                 } else {
                   busLogoFile = result.files.first;
+                  final filePath = File(busLogoFile!.path!);
+                  var ref =
+                      firebaseStorage.ref().child('seller/$email-busTypeProof');
+                  uploadTask = ref.putFile(filePath);
+                  final snapshot = await uploadTask.whenComplete(() {});
+                  logoURL = await snapshot.ref.getDownloadURL();
                   setState(() {
                     uploadedLogo = true;
+                    uploading = false;
                   });
                 }
               },
@@ -146,61 +168,6 @@ class _ProofFormState extends State<ProofForm> {
                     )
                   : const Text(
                       'Upload Business Logo',
-                      style: TextStyle(color: kPrimaryColor),
-                    ),
-            ),
-          ),
-          const SizedBox(height: defaultPadding * 1.25),
-          SizedBox(
-            width: size.width * 0.8,
-            height: 60,
-            child: ElevatedButton.icon(
-              icon: uploadedBank
-                  ? const Icon(
-                      Icons.check_box,
-                      color: Colors.white,
-                    )
-                  : const Icon(
-                      Icons.upload_file,
-                      color: kPrimaryColor,
-                    ),
-              style: uploadedBank
-                  ? ElevatedButton.styleFrom(
-                      shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12))),
-                      backgroundColor: kPrimaryColor,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15, horizontal: 40))
-                  : ElevatedButton.styleFrom(
-                      elevation: 0,
-                      shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          side: BorderSide(color: kPrimaryColor)),
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15, horizontal: 40)),
-              onPressed: () async {
-                final result = await FilePicker.platform.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['png', 'jpg', 'jpeg']);
-                if (result == null) {
-                  setState(() {
-                    uploadedBank = false;
-                  });
-                } else {
-                  bankFile = result.files.first;
-                  setState(() {
-                    uploadedBank = true;
-                  });
-                }
-              },
-              label: uploadedBank
-                  ? Text(
-                      bankFile == null ? "" : bankFile!.name,
-                      style: const TextStyle(color: Colors.white),
-                    )
-                  : const Text(
-                      'Upload Bank Proof',
                       style: TextStyle(color: kPrimaryColor),
                     ),
             ),
@@ -266,17 +233,29 @@ class _ProofFormState extends State<ProofForm> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 15, horizontal: 40)),
               onPressed: () async {
+                setState(() {
+                  uploading = true;
+                });
+                final UploadTask? uploadTask;
                 final result = await FilePicker.platform.pickFiles(
                     type: FileType.custom, allowedExtensions: ['pdf', 'png']);
                 if (result == null) {
                   setState(() {
                     uploadedGST = false;
+                    uploading = false;
                   });
                 } else {
+                  gstFile = result.files.first;
+                  final filePath = File(gstFile!.path!);
+                  var ref =
+                      firebaseStorage.ref().child('seller/$email-busGSTProof');
+                  uploadTask = ref.putFile(filePath);
+                  final snapshot = await uploadTask.whenComplete(() {});
+                  gstURL = await snapshot.ref.getDownloadURL();
                   setState(() {
                     uploadedGST = true;
+                    uploading = false;
                   });
-                  gstFile = result.files.first;
                 }
               },
               label: uploadedGST
@@ -357,18 +336,31 @@ class _ProofFormState extends State<ProofForm> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 15, horizontal: 40)),
                     onPressed: () async {
+                      setState(() {
+                        uploading = true;
+                      });
+                      final UploadTask? uploadTask;
                       final result = await FilePicker.platform.pickFiles(
                           type: FileType.custom,
                           allowedExtensions: ['pdf', 'png']);
                       if (result == null) {
                         setState(() {
                           uploadedFSSAI = false;
+                          uploading = false;
                         });
                       } else {
+                        fssaiFile = result.files.first;
+                        final filePath = File(fssaiFile!.path!);
+                        var ref = firebaseStorage
+                            .ref()
+                            .child('seller/$email-busFssaiProof');
+                        uploadTask = ref.putFile(filePath);
+                        final snapshot = await uploadTask.whenComplete(() {});
+                        fssaiURL = await snapshot.ref.getDownloadURL();
                         setState(() {
                           uploadedFSSAI = true;
+                          uploading = false;
                         });
-                        fssaiFile = result.files.first;
                       }
                     },
                     label: uploadedFSSAI
@@ -384,70 +376,98 @@ class _ProofFormState extends State<ProofForm> {
                 )
               : const SizedBox(height: 0),
           const SizedBox(height: defaultPadding * 2),
-          SizedBox(
-            width: size.width * 0.8,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.check_circle),
-              onPressed: () {
-                if (formGlobalKey.currentState!.validate()) {
-                  formGlobalKey.currentState!.save();
-                  if (busLogoFile == null) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(displaySnackbar("Upload Business Logo"));
-                  } else if (gstFile == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        displaySnackbar("Upload GST Certificate !"));
-                  } else if (isFood && fssaiFile == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        displaySnackbar("Upload FSSAI Certificate"));
-                  } else {
-                    registerBusiness();
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 40)),
-              label: const Text(
-                "Submit Application",
-              ),
-            ),
-          ),
+          uploading
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                )
+              : SizedBox(
+                  width: size.width * 0.8,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle),
+                    onPressed: () {
+                      if (formGlobalKey.currentState!.validate()) {
+                        formGlobalKey.currentState!.save();
+                        if (busLogoFile == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              displaySnackbar("Upload Business Logo"));
+                        } else if (gstFile == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              displaySnackbar("Upload GST Certificate !"));
+                        } else if (isFood && fssaiFile == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              displaySnackbar("Upload FSSAI Certificate"));
+                        } else {
+                          registerBusiness();
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 40)),
+                    label: const Text(
+                      "Submit Application",
+                    ),
+                  ),
+                ),
           const SizedBox(height: defaultPadding),
         ],
       ),
     );
   }
 
-  Future<bool> registerBusiness() async {
-    var request = http.MultipartRequest(
-        'POST', Uri.parse('$urlPrefix/seller/register-seller'));
-    request.files.add(await http.MultipartFile.fromPath(
-        'busGstFile', gstFile?.path as String));
+  registerBusiness() async {
+    final url = Uri.parse('$urlPrefix/seller/register-seller');
+    var json = {
+      "busEmail": await getBusinessEmail(),
+      "busGstNo": gstNo,
+      "busGstFile": gstURL,
+      "busFssaiNo": fssaiNo,
+      "busFssaiFile": fssaiURL,
+      "busLogo": logoURL,
+    };
 
-    request.fields["busName"] = (await getBusinessName())!;
-    request.fields["busEmail"] = (await getBusinessEmail())!;
-    request.fields["busPhone"] = (await getBusinessPhone())!;
-    request.fields["busPass"] = (await getBusinessPass())!;
-    request.fields["busAddress"] = (await getBusinessAddress())!;
-    request.fields["busCity"] = (await getBusinessCity())!;
-    request.fields["busState"] = (await getBusinessState())!;
-    request.fields["busPin"] = (await getBusinessPin())!;
-    request.fields["busType"] = (await getBusinessType())!;
-    request.fields["busCat"] = (await getBusinessCategory())!;
-    request.fields["bankName"] = (await getBankName())!;
-    request.fields["bankAccNo"] = (await getAccountNo())!;
-    request.fields["bankIfsc"] = (await getBankIFSC())!;
-    request.fields["busGstNo"] = gstNo;
-    request.fields["busFssaiNo"] = fssaiNo;
-
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      return true;
+    final response = await post(url, body: json);
+    var result = jsonDecode(response.body);
+    if (result["status"]) {
+      if (context.mounted) {
+        showAlertDialog(context);
+      }
     } else {
-      return false;
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displayErrorSnackbar("Something Went Wrong, Contact Support!"));
+      }
     }
+  }
+
+  showAlertDialog(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text("Login"),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return const LoginScreen();
+          },
+        ));
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: const Text("Registration Successful"),
+      content: const Text(
+          "Your Business Details are sent for verification. You will receive the verification status via mail."),
+      actions: [
+        okButton,
+      ],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 }
 

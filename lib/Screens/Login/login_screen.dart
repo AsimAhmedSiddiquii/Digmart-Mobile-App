@@ -209,6 +209,11 @@ class _LoginFormState extends State<LoginForm> {
         ScaffoldMessenger.of(context)
             .showSnackBar(displayErrorSnackbar("Incorrect Email or Password"));
       }
+    } else if (result["status"] == "Registered") {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            displaySnackbar("Your Business is under verification!"));
+      }
     }
   }
 }

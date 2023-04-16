@@ -1,4 +1,3 @@
-import 'package:digmart_business/Screens/Register/business_details.dart';
 import 'package:digmart_business/constants.dart';
 import 'package:flutter/material.dart';
 
@@ -12,9 +11,7 @@ SnackBar displaySnackbar(text) {
     action: SnackBarAction(
       label: 'Okay',
       textColor: kPrimaryLightColor,
-      onPressed: () {
-        //Do whatever you want
-      },
+      onPressed: () {},
     ),
   );
 }
