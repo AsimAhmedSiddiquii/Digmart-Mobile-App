@@ -150,6 +150,16 @@ void getLoggedIN() async {
   prefs.clear();
 }
 
+Future<String?> getSellerID() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('sellerID');
+}
+
+void setSellerID(String sellerID) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('sellerID', sellerID);
+}
+
 void clearSessionData() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.clear();

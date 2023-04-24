@@ -418,7 +418,7 @@ class _ProofFormState extends State<ProofForm> {
   }
 
   registerBusiness() async {
-    final url = Uri.parse('$urlPrefix/seller/register-seller');
+    final url = Uri.parse('$urlPrefix/seller/register/seller');
     var json = {
       "busEmail": await getBusinessEmail(),
       "busGstNo": gstNo,

@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:digmart_business/Screens/Register/business_bank_details.dart';
-import 'package:digmart_business/components/Register.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
+import '../../components/sessionData.dart';
 import '../../components/snackbar.dart';
 import '../../components/textFieldContainer.dart';
 import '../../components/background.dart';
@@ -286,7 +286,7 @@ class _ProofFormState extends State<ProofForm> {
   }
 
   saveTypeDetails() async {
-    final url = Uri.parse('$urlPrefix/seller/register-type-details');
+    final url = Uri.parse('$urlPrefix/seller/register/type-details');
     var json = {
       "busEmail": await getBusinessEmail(),
       "busType": type,

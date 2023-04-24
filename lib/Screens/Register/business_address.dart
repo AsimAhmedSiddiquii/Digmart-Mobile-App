@@ -271,7 +271,7 @@ class _AddressFormState extends State<AddressForm> {
   }
 
   saveAddressDetails() async {
-    final url = Uri.parse('$urlPrefix/seller/register-address-details');
+    final url = Uri.parse('$urlPrefix/seller/register/address-details');
     var json = {
       "busEmail": await getBusinessEmail(),
       "busAddress": busStreetController.text,

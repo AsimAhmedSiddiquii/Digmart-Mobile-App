@@ -261,7 +261,7 @@ class _BusinessDetailFormState extends State<BusinessDetailForm> {
   }
 
   checkExistence() async {
-    final url = Uri.parse('$urlPrefix/seller/new-seller');
+    final url = Uri.parse('$urlPrefix/seller/register/new-seller');
     var json = {
       "busName": busNameController.text,
       "busEmail": busEmailController.text,

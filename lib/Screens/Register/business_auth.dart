@@ -134,7 +134,7 @@ class _BusinessVerificationScreenState
   }
 
   verifyOTP(emailOTP, phoneOTP) async {
-    final url = Uri.parse('$urlPrefix/seller/verify-otp');
+    final url = Uri.parse('$urlPrefix/seller/register/verify-otp');
     var json = {
       "busEmail": widget.busEmail,
       "emailOTP": emailOTP,

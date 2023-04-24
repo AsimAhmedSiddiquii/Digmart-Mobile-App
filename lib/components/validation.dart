@@ -59,3 +59,13 @@ bool isValidBankName(String name) {
   RegExp regex = RegExp('[a-zA-Z ]');
   return regex.hasMatch(name);
 }
+
+bool isValidNumber(String phone) {
+  RegExp regex = RegExp('[0-9]');
+  return regex.hasMatch(phone);
+}
+
+bool isValidDiscount(String phone) {
+  RegExp regex = RegExp('[0-9]{2}');
+  return regex.hasMatch(phone);
+}

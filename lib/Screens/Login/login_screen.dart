@@ -178,7 +178,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   loginSeller() async {
-    final url = Uri.parse('$urlPrefix/seller/login-seller');
+    final url = Uri.parse('$urlPrefix/seller/login');
     var json = {
       "busEmail": busEmailController.text,
       "busPass": busPassController.text
@@ -186,6 +186,8 @@ class _LoginFormState extends State<LoginForm> {
     setBusinessEmail(busEmailController.text);
     final response = await post(url, body: json);
     var result = jsonDecode(response.body);
+    setSellerID(result["sellerID"]);
+    setBusinessCategory(result["category"]);
     if (result["status"] == "New") {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(displayRegisterSnackbar(

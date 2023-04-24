@@ -328,7 +328,7 @@ class _BusinessDetailFormState extends State<BusinessBankDetailForm> {
   }
 
   saveBankDetails() async {
-    final url = Uri.parse('$urlPrefix/seller/register-bank-details');
+    final url = Uri.parse('$urlPrefix/seller/register/bank-details');
     var json = {
       "busEmail": await getBusinessEmail(),
       "bankName": bankNameController.text,
