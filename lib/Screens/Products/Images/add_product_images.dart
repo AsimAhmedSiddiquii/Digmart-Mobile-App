@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:digmart_business/Screens/Home/home_screen.dart';
+import 'package:digmart_business/Screens/Products/Sizes/manage_product_size.dart';
 import 'package:digmart_business/components/background.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
-import '../../components/constants.dart';
-import '../../components/snackbar.dart';
+import '../../../components/constants.dart';
+import '../../../components/snackbar.dart';
 
 class AddProductImages extends StatefulWidget {
   final String slugID;
@@ -41,7 +41,7 @@ class _AddProductFashionState extends State<AddProductImages> {
           Column(
             children: const [
               Text(
-                "Add Product Images",
+                "Product Images",
                 style: TextStyle(
                     fontFamily: 'Roboto',
                     fontSize: 22,
@@ -119,7 +119,9 @@ class _AddProductFashionState extends State<AddProductImages> {
                         },
                         label: uploadedFront
                             ? Text(
-                                frontImg == null ? "" : frontImg!.name,
+                                frontImg == null
+                                    ? "Edit Image"
+                                    : frontImg!.name,
                                 style: const TextStyle(color: Colors.white),
                               )
                             : const Text(
@@ -191,7 +193,7 @@ class _AddProductFashionState extends State<AddProductImages> {
                         },
                         label: uploadedBack
                             ? Text(
-                                backImg == null ? "" : backImg!.name,
+                                backImg == null ? "Edit Image" : backImg!.name,
                                 style: const TextStyle(color: Colors.white),
                               )
                             : const Text(
@@ -263,7 +265,9 @@ class _AddProductFashionState extends State<AddProductImages> {
                         },
                         label: uploaded1Side
                             ? Text(
-                                side1Img == null ? "" : side1Img!.name,
+                                side1Img == null
+                                    ? "Edit Image"
+                                    : side1Img!.name,
                                 style: const TextStyle(color: Colors.white),
                               )
                             : const Text(
@@ -335,7 +339,9 @@ class _AddProductFashionState extends State<AddProductImages> {
                         },
                         label: uploaded2Side
                             ? Text(
-                                side2Img == null ? "" : side2Img!.name,
+                                side2Img == null
+                                    ? "Edit Image"
+                                    : side2Img!.name,
                                 style: const TextStyle(color: Colors.white),
                               )
                             : const Text(
@@ -407,7 +413,9 @@ class _AddProductFashionState extends State<AddProductImages> {
                         },
                         label: uploadedOther
                             ? Text(
-                                otherImg == null ? "" : otherImg!.name,
+                                otherImg == null
+                                    ? "Edit Image"
+                                    : otherImg!.name,
                                 style: const TextStyle(color: Colors.white),
                               )
                             : const Text(
@@ -445,7 +453,7 @@ class _AddProductFashionState extends State<AddProductImages> {
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 20, horizontal: 40)),
                               child: Text(
-                                "Add Images".toUpperCase(),
+                                "Save Images".toUpperCase(),
                               ),
                             ),
                           ),
@@ -471,7 +479,9 @@ class _AddProductFashionState extends State<AddProductImages> {
       if (context.mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) {
-          return const HomeScreen();
+          return ManageProductSize(
+            slugID: widget.slugID,
+          );
         }));
       }
     } else {

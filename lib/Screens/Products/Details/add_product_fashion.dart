@@ -1,15 +1,15 @@
 import 'dart:convert';
 
-import 'package:digmart_business/Screens/Products/add_product_images.dart';
+import 'package:digmart_business/Screens/Products/Images/add_product_images.dart';
 import 'package:digmart_business/components/background.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
-import '../../components/constants.dart';
-import '../../components/sessionData.dart';
-import '../../components/snackbar.dart';
-import '../../components/textFieldContainer.dart';
-import '../../components/validation.dart';
+import '../../../components/constants.dart';
+import '../../../components/sessionData.dart';
+import '../../../components/snackbar.dart';
+import '../../../components/textFieldContainer.dart';
+import '../../../components/validation.dart';
 
 class AddProductFashion extends StatefulWidget {
   const AddProductFashion({super.key});
@@ -142,41 +142,6 @@ class _ProductFormState extends State<FashionProductForm> {
               padding: const EdgeInsets.only(bottom: defaultPadding),
               child: TextFieldContainer(
                   child: DropdownButtonFormField(
-                value: category == "" ? null : category,
-                validator: (value) {
-                  if (value == null) {
-                    return "Select Product Category";
-                  } else {
-                    return null;
-                  }
-                },
-                items: ["Fashion", "Food"].map((String category) {
-                  return DropdownMenuItem(
-                      value: category,
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            category,
-                            style: const TextStyle(fontSize: 15),
-                          ),
-                        ],
-                      ));
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() => category = newValue!);
-                },
-                decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.fromLTRB(10, 20, 10, 20),
-                    filled: true,
-                    fillColor: kPrimaryLightColor,
-                    hintText: "Product Category",
-                    border: InputBorder.none),
-              )),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: defaultPadding),
-              child: TextFieldContainer(
-                  child: DropdownButtonFormField(
                 value: section == "" ? null : section,
                 validator: (value) {
                   if (value == null) {
@@ -272,88 +237,120 @@ class _ProductFormState extends State<FashionProductForm> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: defaultPadding),
-              child: TextFieldContainer(
-                child: TextFormField(
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  cursorColor: kPrimaryColor,
-                  controller: proActualController,
-                  validator: (price) {
-                    if (isValidNumber(price!)) {
-                      return null;
-                    } else {
-                      return 'Enter valid Actual Price';
-                    }
-                  },
-                  decoration: const InputDecoration(
-                      hintText: "Enter Actual MRP Price",
-                      icon: Icon(
-                        Icons.money,
-                        color: kPrimaryColor,
-                      ),
-                      border: InputBorder.none),
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                    decoration: BoxDecoration(
+                        color: kPrimaryLightColor,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: TextFormField(
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      controller: proActualController,
+                      maxLength: 6,
+                      validator: (price) {
+                        if (isValidNumber(price!)) {
+                          return null;
+                        } else {
+                          return 'Actual Price';
+                        }
+                      },
+                      onChanged: (value) {
+                        if (proDiscountController.text.isNotEmpty &&
+                            proActualController.text.isNotEmpty) {
+                          var originalPrice = int.parse(value);
+                          if (value.isNotEmpty) {
+                            var discount =
+                                double.parse(proDiscountController.text) / 100;
+                            var newPrice =
+                                originalPrice - (originalPrice * discount);
+                            proFinalController.text =
+                                newPrice.round().toString();
+                          } else {
+                            proFinalController.text = proActualController.text;
+                          }
+                        }
+                      },
+                      decoration: const InputDecoration(
+                          hintText: "MRP Price",
+                          counterText: '',
+                          icon: Icon(
+                            Icons.money,
+                            color: kPrimaryColor,
+                          ),
+                          border: InputBorder.none),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: defaultPadding),
-              child: TextFieldContainer(
-                child: TextFormField(
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  cursorColor: kPrimaryColor,
-                  controller: proDiscountController,
-                  maxLength: 2,
-                  validator: (price) {
-                    if (isValidNumber(price!)) {
-                      return null;
-                    } else {
-                      return 'Enter valid Discount';
-                    }
-                  },
-                  onChanged: (value) {
-                    if (proActualController.text.isNotEmpty) {
-                      var originalPrice = int.parse(proActualController.text);
-                      if (value.isNotEmpty) {
-                        var discount = double.parse(value) / 100;
-                        var newPrice =
-                            originalPrice - (originalPrice * discount);
-                        proFinalController.text = newPrice.round().toString();
-                      } else {
-                        proFinalController.text = proActualController.text;
-                      }
-                    }
-                  },
-                  decoration: const InputDecoration(
-                      hintText: "Enter Discount",
-                      icon: Icon(
-                        Icons.discount,
-                        color: kPrimaryColor,
-                      ),
-                      counterText: "",
-                      border: InputBorder.none),
+                const SizedBox(
+                  width: 8,
                 ),
-              ),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                    decoration: BoxDecoration(
+                        color: kPrimaryLightColor,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: TextFormField(
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      controller: proDiscountController,
+                      maxLength: 2,
+                      validator: (price) {
+                        if (isValidNumber(price!)) {
+                          return null;
+                        } else {
+                          return 'Enter valid Discount';
+                        }
+                      },
+                      onChanged: (value) {
+                        if (proActualController.text.isNotEmpty) {
+                          var originalPrice =
+                              int.parse(proActualController.text);
+                          if (value.isNotEmpty) {
+                            var discount = double.parse(value) / 100;
+                            var newPrice =
+                                originalPrice - (originalPrice * discount);
+                            proFinalController.text =
+                                newPrice.round().toString();
+                          } else {
+                            proFinalController.text = proActualController.text;
+                          }
+                        }
+                      },
+                      decoration: const InputDecoration(
+                          hintText: "Discount %",
+                          icon: Icon(
+                            Icons.discount,
+                            color: kPrimaryColor,
+                          ),
+                          counterText: "",
+                          border: InputBorder.none),
+                    ),
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: defaultPadding),
             Padding(
               padding: const EdgeInsets.only(bottom: defaultPadding),
               child: TextFieldContainer(
                 child: TextFormField(
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.done,
+                  readOnly: true,
                   cursorColor: kPrimaryColor,
                   controller: proFinalController,
-                  validator: (price) {
-                    if (isValidNumber(price!)) {
-                      return null;
-                    } else {
-                      return 'Enter valid Final Price';
-                    }
-                  },
                   decoration: const InputDecoration(
-                      hintText: "Enter Final Price",
+                      hintText: "Final Price",
                       icon: Icon(
                         Icons.currency_rupee,
                         color: kPrimaryColor,

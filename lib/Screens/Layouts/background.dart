@@ -1,7 +1,8 @@
+import 'package:digmart_business/Screens/Home/home_screen.dart';
+import 'package:digmart_business/Screens/Products/Details/add_product_fashion.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/constants.dart';
-import '../Products/add_product_fashion.dart';
 import '../Products/products.dart';
 
 class AppBackground extends StatelessWidget {
@@ -39,7 +40,12 @@ class AppBackground extends StatelessWidget {
                 Icons.analytics_outlined,
                 size: 32,
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const HomeScreen();
+                }));
+              },
             ),
             IconButton(
               icon: const Icon(
@@ -47,7 +53,8 @@ class AppBackground extends StatelessWidget {
                 size: 32,
               ),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) {
                   return const ShowProductsScreen();
                 }));
               },

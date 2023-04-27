@@ -62,3 +62,25 @@ SnackBar displayRegisterSnackbar(text, context, page) {
     ),
   );
 }
+
+SnackBar displayGeneralSnackbar(btnLabel, text, context, page) {
+  return SnackBar(
+    content: Text(text),
+    backgroundColor: (kPrimaryColor),
+    behavior: SnackBarBehavior.floating,
+    action: SnackBarAction(
+      label: btnLabel,
+      textColor: kPrimaryLightColor,
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return page;
+            },
+          ),
+        );
+      },
+    ),
+  );
+}
